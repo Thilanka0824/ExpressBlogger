@@ -4,6 +4,8 @@ var router = express.Router();
 var express = require("express");
 var router = express.Router();
 
+var { validateBlogData } = require("../validation/blogs");
+
 const sampleBlogs = [
   {
     title: "dicta",
@@ -57,7 +59,7 @@ router.get("/", function (req, res, next) {
 });
 
 // Module.exports is listing the variables in this file to send to other files
-module.exports = router;
+//module.exports = router;
 
 /* GET blogs default */
 router.get("/", function (req, res, next) {
@@ -72,7 +74,7 @@ router.get("/all", (req, res) => {
     console.log("GET to /blogs/all")
     res.json({
         success: true,
-        blogs: "sampleBlogs"
+        blogs: sampleBlogs
 
     })
 })
@@ -91,11 +93,14 @@ router.get("/single/:blogTitleToGet", (req, res) => {
         }
     })
 
-    const foundBlog = sampleBlogs[foundBlogIndex]
-    res.json(foundBlog)
+  const foundBlog = sampleBlogs[foundBlogIndex]
+  
+  res.json({
+      success: true,
+      blog: foundBlog
+    })
 })
-// Module.exports is listing the variables in this file to send to other files
-module.exports = router;
+
 
 router.delete('/single/:blogTitleToDelete', (req, res) => {
     console.log("DELETE")
@@ -126,3 +131,102 @@ router.delete('/single/:blogTitleToDelete', (req, res) => {
         hasBeenDeleted: true
     });
 });
+
+router.post('/create-one', (req, res) => {
+  console.log("POST")
+  const title = req.body.title
+  const text = req.body.text
+  const author = req.body.author
+
+
+  const newBlog = {
+    title,
+    text,
+    author,
+    createdAt: new Date(),
+    lastModified: new Date()
+  }
+
+  const blogDataCheck = validateBlogData(newBlog);
+  
+  if(blogDataCheck.isValid === false){
+    res.json({
+      success: false,
+      message: blogDataCheck.message
+    })
+    return
+  }
+  
+  sampleBlogs.push(newBlog)
+
+  res.json({
+    success: true
+  })
+
+
+
+})
+
+
+
+
+
+
+
+router.put('/update-one/:blogTitle', (req, res) => {
+
+  console.log("PUT");
+
+  const blogTitle = req.params.blogTitle
+
+  const originalBlogIndex = sampleBlogs.findIndex((blog) => {
+    if(blog.title === blogTitle){
+      console.log("Blog titles match")
+      return true
+    } else {
+      console.log("blog titles Do Not Match")
+      return false
+    }
+  })
+
+  const originalBlog = sampleBlogs[originalBlogIndex]
+
+  if (originalBlog === undefined) {
+    res.json({
+      message: "OriginalBlog does not exist",
+    });
+    return;
+  }
+  
+  const updatedBlog = {
+    title: originalBlog.title,
+    text: originalBlog.text,
+    author: originalBlog.author
+
+  }
+
+  
+
+  if (req.body.title !== undefined) {
+    updatedBlog.title = req.body.title;
+  }
+
+  if (req.body.text !== undefined) {
+    updatedBlog.text = req.body.text;
+  }
+
+  if (req.body.author !== undefined) {
+    updatedBlog.author = req.body.author;
+  }
+
+  sampleBlogs[originalBlogIndex] = updatedBlog
+
+
+  res.json({
+    success: true
+  })
+})
+
+
+// Module.exports is listing the variables in this file to send to other files
+module.exports = router;

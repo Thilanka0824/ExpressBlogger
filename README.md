@@ -26,7 +26,7 @@
 
 - _quick Aside_: Require is being phased out in favor of import/export syntax. However, when we are working in a Express environment we need to still use require() because of node limitations
 
-- _NOTE_: So for Express we need to use require() and module. exports syntax
+- _NOTE_: So for Express we need to use require() and module.exports syntax
 - require() brings in code from the file we specify in the file path
 - module.exports exports code form a file
 - _NOTE_:module.exports = router; is sending the router variabler from the route file
@@ -34,3 +34,12 @@
 - app.use('/', indexRouter); is importing the routers we define on indexRouter into our server so that we are exposed as routes.
     - the first argument is the base url for this router
     - the second argument is the router variable
+- Important: All the route paths in our indexRouter are going to be appended to the base path
+
+- Example:
+    In users.js:
+    router.get('/all', function(req, res, next) { res.send('respond with a resource'); });
+- In app.js:
+    var usersRouter = require('./routes/users');
+    app.use('/users', usersRouter);
+- The '/all' path for the route we created in users.js is going to be APPENDED to the base path in app.js. I.E. the final path will be "localhost:3000/users/all"
